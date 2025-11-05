@@ -31,26 +31,24 @@ export default function NotesScreen({ navigation }) {
   const [noteText, setNoteText] = useState('');
   const [editingNote, setEditingNote] = useState(null);
 
-  // Enregistrer une note (ajout ou modification)
+  /** =========================
+   *  AJOUT & MISE À JOUR
+   *  ========================= */
   const saveNote = () => {
     if (noteText.trim() === '') return;
 
     if (editingNote) {
-      // Modifier une note existante
-      setNotes(
-        notes.map((note) =>
-          note.id === editingNote.id
-            ? {
-                ...note,
-                content: noteText,
-                updatedAt: new Date().toISOString(),
-              }
-            : note
-        )
-      );
+      // 📝 Mettre à jour une note existante
+      const updatedNote = {
+        ...editingNote,
+        content: noteText,
+        updatedAt: new Date().toISOString(),
+      };
+
+      handleNoteUpdated(updatedNote);
       setEditingNote(null);
     } else {
-      // Ajouter une nouvelle note
+      // ➕ Ajouter une nouvelle note
       const newNote = {
         id: Date.now().toString(),
         content: noteText,
@@ -63,25 +61,45 @@ export default function NotesScreen({ navigation }) {
     setModalVisible(false);
   };
 
-  // Supprimer une note
-  const deleteNote = (id) => {
-    setNotes(notes.filter((note) => note.id !== id));
+  /** =========================
+   *  SUPPRESSION DE NOTE
+   *  ========================= */
+  const handleNoteDeleted = (noteId) => {
+    setNotes((currentNotes) => currentNotes.filter((note) => note.id !== noteId));
   };
 
-  // Ouvrir le mode édition
+  /** =========================
+   *  MISE À JOUR D’UNE NOTE
+   *  ========================= */
+  const handleNoteUpdated = (updatedNote) => {
+    setNotes((currentNotes) =>
+      currentNotes.map((note) =>
+        note.id === updatedNote.id ? updatedNote : note
+      )
+    );
+  };
+
+  /** =========================
+   *  OUVERTURE DU MODE ÉDITION
+   *  ========================= */
   const editNote = (note) => {
     setEditingNote(note);
     setNoteText(note.content);
     setModalVisible(true);
   };
 
-  // Fermer le modal
+  /** =========================
+   *  FERMETURE DU MODAL
+   *  ========================= */
   const closeModal = () => {
     setModalVisible(false);
     setNoteText('');
     setEditingNote(null);
   };
 
+  /** =========================
+   *  RENDU PRINCIPAL
+   *  ========================= */
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3498db" />
@@ -109,10 +127,10 @@ export default function NotesScreen({ navigation }) {
         <FlatList
           data={notes}
           renderItem={({ item }) => (
-            <NoteItem 
-              note={item} 
-              onEdit={editNote} 
-              onDelete={deleteNote} 
+            <NoteItem
+              note={item}
+              onEdit={editNote}
+              onDelete={() => handleNoteDeleted(item.id)}
             />
           )}
           keyExtractor={(item) => item.id}
@@ -128,7 +146,7 @@ export default function NotesScreen({ navigation }) {
         </View>
       )}
 
-      {/* Modal pour ajouter/modifier */}
+      {/* Modal pour ajouter/modifier une note */}
       <NoteInput
         visible={modalVisible}
         onClose={closeModal}
@@ -141,6 +159,9 @@ export default function NotesScreen({ navigation }) {
   );
 }
 
+/** =========================
+ *  STYLES
+ *  ========================= */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
